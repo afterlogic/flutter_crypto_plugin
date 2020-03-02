@@ -457,7 +457,7 @@ class Pgp {
         val secretKeyDecryptor = PasswordBasedSecretKeyRingProtector(settings, SecretKeyPassphraseProvider { Passphrase(password.toCharArray()) })
         val privateKey = secretKeys.extractPrivateKey(secretKeyDecryptor.getDecryptor(secretKeys.keyID))
 
-        val signatureAlgo = HashAlgorithmTags.SHA256
+        val signatureAlgo = HashAlgorithmTags.SHA512
         val signatureGenerator = PGPV3SignatureGenerator(
                 BcPGPContentSignerBuilder(privateKey.publicKeyPacket.algorithm, signatureAlgo))
         signatureGenerator.init(PGPSignature.BINARY_DOCUMENT, privateKey)
@@ -478,7 +478,7 @@ class Pgp {
         val signature = outputStream.toByteArray()
 
         return PGP_SIGN_TITLE + "\r\n" +
-                "Hash: SHA256\r\n\r\n" +
+                "Hash: SHA512\r\n\r\n" +
                 text + "\r\n" +
                 String(signature)
     }
