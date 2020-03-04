@@ -208,7 +208,8 @@ public final class EncryptionStream extends OutputStream {
             // Signing
             for (PGPSignatureGenerator signatureGenerator : signatureGenerators) {
                 try {
-                    signatureGenerator.generate().encode(basicCompressionStream);
+                    PGPSignature signature = signatureGenerator.generate();
+                    signature.encode(basicCompressionStream);
                 } catch (PGPException e) {
                     throw new IOException(e);
                 }

@@ -1,11 +1,7 @@
 package com.afterlogic.crypto_plugin.pgp
 
-import org.bouncycastle.util.io.Streams
 import org.junit.Test
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import java.io.File
-import java.nio.charset.Charset
 
 class PgpApiTest {
 

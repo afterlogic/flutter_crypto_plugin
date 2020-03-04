@@ -458,9 +458,10 @@ class Pgp {
         val privateKey = secretKeys.extractPrivateKey(secretKeyDecryptor.getDecryptor(secretKeys.keyID))
 
         val signatureAlgo = HashAlgorithmTags.SHA512
-        val signatureGenerator = PGPV3SignatureGenerator(
+
+        val signatureGenerator = PGPSignatureGenerator(
                 BcPGPContentSignerBuilder(privateKey.publicKeyPacket.algorithm, signatureAlgo))
-        signatureGenerator.init(PGPSignature.BINARY_DOCUMENT, privateKey)
+        signatureGenerator.init(PGPSignature.CANONICAL_TEXT_DOCUMENT, privateKey)
 
         val armor = ArmoredOutputStream(outputStream)
         val stream = BCPGOutputStream(armor)
@@ -471,7 +472,9 @@ class Pgp {
             signatureGenerator.update(buff, 0, read)
             read = inputStream.read(buff)
         }
-        signatureGenerator.generate().encode(stream)
+        val pgpSignature = signatureGenerator.generate()
+
+        pgpSignature.encode(stream)
         armor.close()
         stream.close()
         outputStream.close()
