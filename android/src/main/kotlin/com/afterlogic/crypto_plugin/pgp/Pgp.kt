@@ -284,6 +284,7 @@ class Pgp {
         progress.total = fileLength
         var preparedInputStream: InputStream? = null
         var encOut: OutputStream? = null
+        var out = ArmoredOutputStream(outputStream);
         try {
             val encryptionAlgorithm = SymmetricKeyAlgorithm.AES_256
             val compressionAlgorithm = CompressionAlgorithm.ZIP
@@ -304,7 +305,7 @@ class Pgp {
                             .setSecureRandom(SecureRandom())
             )
 
-            encOut = encGen.open(outputStream, prepareEncrypt.length())!!
+            encOut = encGen.open(out, prepareEncrypt.length())!!
 
 
             val byffer = ByteArray(4096)
@@ -325,6 +326,7 @@ class Pgp {
             encOut?.close()
             preparedInputStream?.close()
             inputStream.close()
+            out.close()
             outputStream.close()
             progress.complete = true
         }

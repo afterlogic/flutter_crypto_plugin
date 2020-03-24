@@ -126,12 +126,12 @@ class PgpApiTest {
         val encrypt = File(testEncrypt)
         pgpHelper.setPrivateKey(privateKey)
         pgpHelper.setPublicKeys(listOf(publicKey))
-        val startLength = File(testFile).length()
+        val startLength = decrypt.length()
         pgpHelper.setTempFile(temp)
 
         pgpHelper.encryptSymmetricFile(decrypt.path, encrypt.path, password)
         pgpHelper.decryptSymmetricFile(encrypt.path, decrypt.path, password)
-        assert(startLength == File(testFile).length())
+        assert(startLength == decrypt.length())
     }
 
     @Test
@@ -152,7 +152,7 @@ class PgpApiTest {
 
     companion object {
         // past you test file
-        const val testFile = "C:\\Users\\NyAkovlev\\Downloads\\test.bmp"
+        const val testFile = "D:\\file.txt"
 
 
         const val testEncrypt = "$testFile.gpg"
