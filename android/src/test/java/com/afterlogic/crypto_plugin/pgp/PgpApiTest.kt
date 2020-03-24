@@ -124,14 +124,18 @@ class PgpApiTest {
         val pgpHelper = PgpApi()
         val decrypt = File(testFile)
         val encrypt = File(testEncrypt)
-        pgpHelper.setPrivateKey(privateKey)
-        pgpHelper.setPublicKeys(listOf(publicKey))
+
         val startLength = decrypt.length()
         pgpHelper.setTempFile(temp)
 
         pgpHelper.encryptSymmetricFile(decrypt.path, encrypt.path, password)
         pgpHelper.decryptSymmetricFile(encrypt.path, decrypt.path, password)
         assert(startLength == decrypt.length())
+
+        val message = "message!";
+        val encrypted = pgpHelper.encryptSymmetricBytes(message.toByteArray(), password)
+        val decrypted = pgpHelper.decryptSymmetricBytes(encrypted, password)
+        assert(decrypted.toString(Charsets.UTF_8) == message)
     }
 
     @Test
