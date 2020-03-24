@@ -109,20 +109,16 @@ class Pgp {
                         }
                     }
                     .let { builder ->
-                        if (publicKey != null) {
-                            val publicKeyRings = publicKey.map { key ->
-                                KeyRingReader.readPublicKeyRing(ByteArrayInputStream(key.toByteArray()))
-                            }
-                            val pgpPub = PGPPublicKeyRingCollection(publicKeyRings)
-                            builder
-                                    .verifyWith(pgpPub)
-                                    .handleMissingPublicKeysWith {
-                                        lastVerifyResult = false
-                                        null
-                                    }
-                        } else {
-                            builder.doNotVerify()
-                        }
+                        val publicKeyRings = publicKey?.map { key ->
+                            KeyRingReader.readPublicKeyRing(ByteArrayInputStream(key.toByteArray()))
+                        } ?: listOf()
+                        val pgpPub = PGPPublicKeyRingCollection(publicKeyRings)
+                        builder
+                                .verifyWith(pgpPub)
+                                .handleMissingPublicKeysWith {
+                                    lastVerifyResult = false
+                                    null
+                                }
                     }
                     .build()
 

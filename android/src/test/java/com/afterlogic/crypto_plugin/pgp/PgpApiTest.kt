@@ -81,15 +81,9 @@ class PgpApiTest {
         assert(String(messageDecrypted) == String(message))
 
         messageEncrypted = pgpHelper.encryptBytes(message, password)
-        messageDecrypted = pgpHelper.decryptBytes(messageEncrypted, password)
-        assert(pgpHelper.verifyResult() == true)
-        assert(String(messageDecrypted) == String(message))
-
-        messageEncrypted = pgpHelper.encryptBytes(message, password)
-        messageDecrypted = pgpHelper.decryptBytes(messageEncrypted, password)
-        assert(pgpHelper.verifyResult() == true)
-        assert(String(messageDecrypted) == String(message))
-
+        pgpHelper.setPublicKeys(null)
+        pgpHelper.decryptBytes(messageEncrypted, password)
+        assert(pgpHelper.verifyResult() == false)
 
         messageEncrypted = pgpHelper.encryptBytes(message, password)
         pgpHelper.setPublicKeys(listOf(otherPublicKey))
@@ -97,11 +91,6 @@ class PgpApiTest {
         assert(pgpHelper.verifyResult() == false)
 
         pgpHelper.setPublicKeys(listOf(publicKey))
-        try {
-            pgpHelper.encryptBytes(message, password + "1")
-        } catch (e: Throwable) {
-            assert(e is InputDataError)
-        }
     }
 
     @Test
