@@ -17,6 +17,7 @@ import org.bouncycastle.openpgp.PGPPublicKey
 import org.bouncycastle.openpgp.bc.BcPGPObjectFactory
 import org.bouncycastle.openpgp.jcajce.JcaPGPObjectFactory
 import org.bouncycastle.openpgp.operator.bc.*
+import org.bouncycastle.util.encoders.Base64
 import org.bouncycastle.util.io.Streams
 import org.pgpainless.PGPainless
 import org.pgpainless.algorithm.CompressionAlgorithm
@@ -560,6 +561,16 @@ class Pgp {
         } catch (e: Throwable) {
             false
         }
+    }
+
+    fun extractPublic(privateKey: String): String {
+        val secretKey = readPrivateKey(ByteArrayInputStream(privateKey.toByteArray()))
+        val out = ByteArrayOutputStream()
+        val armored = ArmoredOutputStream(out)
+        secretKey.publicKey.encode(armored);
+        armored.close()
+        out.close()
+        return out.toByteArray().toString(Charsets.UTF_8)
     }
 
 

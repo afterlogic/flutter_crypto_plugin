@@ -167,4 +167,8 @@ open class PgpApi {
     fun verifyResult(): Boolean? {
         return pgp.lastVerifyResult
     }
+
+    fun extractPublic(privateKey: String): String {
+        return  pgp.extractPublic(privateKey);
+    }
 }

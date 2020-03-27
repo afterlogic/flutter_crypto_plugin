@@ -142,6 +142,13 @@ class PgpApiTest {
         verify
     }
 
+    @Test
+    fun extractPublicKey() {
+        val pgp = PgpApi()
+        val pair = pgp.createKeys(2000, "test@mail.com", "111")
+        val extracted = pgp.extractPublic(pair.last())
+        assert(extracted == pair.first())
+    }
 
     companion object {
         // past you test file
