@@ -5,19 +5,13 @@ import KeyDescription
 import org.bouncycastle.bcpg.ArmoredOutputStream
 import org.bouncycastle.bcpg.BCPGOutputStream
 import org.bouncycastle.bcpg.HashAlgorithmTags
-import java.util.Date
-
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.openpgp.*
-import org.bouncycastle.openpgp.operator.KeyFingerPrintCalculator
-import java.security.*
-import org.bouncycastle.openpgp.operator.jcajce.*
-import java.io.*
-import org.bouncycastle.openpgp.PGPPublicKey
 import org.bouncycastle.openpgp.bc.BcPGPObjectFactory
 import org.bouncycastle.openpgp.jcajce.JcaPGPObjectFactory
+import org.bouncycastle.openpgp.operator.KeyFingerPrintCalculator
 import org.bouncycastle.openpgp.operator.bc.*
-import org.bouncycastle.util.encoders.Base64
+import org.bouncycastle.openpgp.operator.jcajce.JcePGPDataEncryptorBuilder
 import org.bouncycastle.util.io.Streams
 import org.pgpainless.PGPainless
 import org.pgpainless.algorithm.CompressionAlgorithm
@@ -35,6 +29,12 @@ import org.pgpainless.key.protection.PasswordBasedSecretKeyRingProtector
 import org.pgpainless.key.protection.SecretKeyPassphraseProvider
 import org.pgpainless.util.BCUtil
 import org.pgpainless.util.Passphrase
+import java.io.*
+import java.security.NoSuchProviderException
+import java.security.SecureRandom
+import java.security.Security
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 class Pgp {
@@ -185,10 +185,19 @@ class Pgp {
                             it.doNotSign()
                         } else {
                             val settings = KeyRingProtectionSettings(SymmetricKeyAlgorithm.AES_256, HashAlgorithm.MD5, 0)
-                            val secretKeys = KeyRingReader().secretKeyRing(privateKey)
+                            val secretKeys = KeyRingReader().secretKeyRing(privateKey).secretKeys
+                            var signingKey: PGPSecretKey? = null
+                            secretKeys.forEach { key ->
+                                if (key.isMasterKey || signingKey == null) {
+                                    signingKey = key
+                                }
+                            }
+                            if (signingKey == null) {
+                                return@let it.doNotSign()
+                            }
                             val secretKeyDecryptor = PasswordBasedSecretKeyRingProtector(settings, SecretKeyPassphraseProvider { Passphrase(password.toCharArray()) })
 
-                            it.signWith<Any>(secretKeyDecryptor, secretKeys)
+                            it.signWith<Any>(secretKeyDecryptor, signingKey)
                         }
                     }
                     .asciiArmor()
@@ -415,47 +424,22 @@ class Pgp {
         comData.close()
     }
 
-    fun checkSign(input: InputStream, publicKey: String): DecryptionStream {
-        return DecryptionBuilder()
-                .onInputStream(input)
-                .doNotDecrypt()
-                .let {
-                    val keyStream = PGPUtil.getDecoderStream(ByteArrayInputStream(publicKey.toByteArray()))
-                    val pgpPub = PGPPublicKeyRingCollection(keyStream, calculator)
-                    it
-                            .verifyWith(pgpPub)
-                            .handleMissingPublicKeysWith {
-                                throw SignError()
-                            }
-                }
-                .build()
-    }
-
-
-    private fun sign(output: OutputStream, privateKey: String, password: String): EncryptionStream {
-        return EncryptionBuilder()
-                .onOutputStream(output)
-                .doNotEncrypt()
-                .let {
-                    val settings = KeyRingProtectionSettings(SymmetricKeyAlgorithm.AES_256, HashAlgorithm.SHA512, 0)
-                    val secretKeys = KeyRingReader().secretKeyRing(privateKey)
-                    val secretKeyDecryptor = PasswordBasedSecretKeyRingProtector(settings, SecretKeyPassphraseProvider { Passphrase(password.toCharArray()) })
-
-                    it.signWith<Any>(secretKeyDecryptor, secretKeys)
-                }
-                .asciiArmor()
-
-
-    }
-
     fun addSignature(text: String, privateKeyText: String, password: String): String {
         val inputStream = ByteArrayInputStream(text.toByteArray())
         val outputStream = ByteArrayOutputStream()
         val settings = KeyRingProtectionSettings(SymmetricKeyAlgorithm.AES_256, HashAlgorithm.SHA512, 0)
-        val secretKeys = KeyRingReader().secretKeyRing(privateKeyText).secretKey
+        val secretKeys = KeyRingReader().secretKeyRing(privateKeyText)
         val secretKeyDecryptor = PasswordBasedSecretKeyRingProtector(settings, SecretKeyPassphraseProvider { Passphrase(password.toCharArray()) })
-        val privateKey = secretKeys.extractPrivateKey(secretKeyDecryptor.getDecryptor(secretKeys.keyID))
-
+        var signingKey: PGPSecretKey? = null
+        secretKeys.forEach { key ->
+            if (key.isMasterKey || signingKey == null) {
+                signingKey = key
+            }
+        }
+        if (signingKey == null) {
+            signingKey = secretKeys.secretKey
+        }
+        val privateKey = signingKey!!.extractPrivateKey(secretKeyDecryptor.getDecryptor(signingKey!!.keyID))
         val signatureAlgo = HashAlgorithmTags.SHA512
 
         val signatureGenerator = PGPSignatureGenerator(
