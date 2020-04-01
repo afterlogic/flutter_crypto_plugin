@@ -153,6 +153,7 @@ class PgpApiTest {
 
     @Test
     fun testKeyInfo() {
+        print("private\n")
         testPrivateKeys.forEach {
             val secretKeyRing = KeyRingReader().secretKeyRing(it)
             print("\n")
@@ -161,6 +162,17 @@ class PgpApiTest {
             }
             secretKeyRing.secretKeys.forEach {
                 print("id = ${it.keyID}\nisSigningKey = ${it.isSigningKey}\nisMasterKey= ${it.isMasterKey}\n")
+            }
+        }
+        print("\npublic\n")
+        testPublicKeys.forEach {
+            val publicKeyRing = KeyRingReader().publicKeyRing(it)
+            print("\n")
+            publicKeyRing.publicKey.userIDs.forEach {
+                print("$it\n")
+            }
+            publicKeyRing.publicKeys.forEach {
+                print("id = ${it.keyID}\nisEncryptionKey = ${it.isEncryptionKey}\nisMasterKey = ${it.isMasterKey}\n")
             }
         }
     }
@@ -511,4 +523,6 @@ class PgpApiTest {
             "CcfTXhGo4GSOgxk=\n" +
             "=gtgB\n" +
             "-----END PGP PUBLIC KEY BLOCK-----\n")
+
+
 }

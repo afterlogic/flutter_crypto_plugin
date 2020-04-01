@@ -50,7 +50,7 @@ class Pgp extends Crypt {
   }
 
   Future<List<int>> decryptBytes(
-      Uint8List encryptedBytes, String password) async {
+      List<int> encryptedBytes, String password) async {
     final result = await invokeMethod(
       "$algorithm.decryptBytes",
       [encryptedBytes, password],
@@ -66,7 +66,7 @@ class Pgp extends Crypt {
   }
 
   Future<List<int>> encryptBytes(
-      Uint8List messageBytes, String passwordForSign) async {
+      List<int> messageBytes, String passwordForSign) async {
     final result = await invokeMethod(
       "$algorithm.encryptBytes",
       [messageBytes, passwordForSign],
@@ -83,7 +83,7 @@ class Pgp extends Crypt {
   }
 
   Future<List<int>> decryptSymmetricBytes(
-      Uint8List encryptedBytes, String password) async {
+      List<int> encryptedBytes, String password) async {
     final result = await invokeMethod(
       "$algorithm.decryptSymmetricBytes",
       [encryptedBytes, password],
@@ -100,7 +100,7 @@ class Pgp extends Crypt {
   }
 
   Future<List<int>> encryptSymmetricBytes(
-      Uint8List messageBytes, String password) async {
+      List<int> messageBytes, String password) async {
     final result = await invokeMethod(
       "$algorithm.encryptSymmetricBytes",
       [messageBytes, password],
